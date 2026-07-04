@@ -67,20 +67,34 @@ def make_clip(video_path, cues, start, end, out_path, cfg):
 
     W = cfg.get("video_width", 1080)
     H = cfg.get("video_height", 1920)
-    vf = f"crop=ih*9/16:ih,scale={W}:{H}"
+    layout = cfg.get("layout", "blur")
+
+    sub = ""
     if has_caps:
         style = _force_style(cfg.get("caption_style", {}))
         # srt_name safe hai (alnum + _), isliye seedha reference
-        vf += f",subtitles={srt_name}:force_style='{style}'"
+        sub = f",subtitles={srt_name}:force_style='{style}'"
 
-    cmd = [
-        _ffmpeg_exe(cfg), "-y",
-        "-ss", str(start), "-to", str(end),
-        "-i", os.path.abspath(video_path),
-        "-vf", vf,
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
-        "-c:a", "aac", "-b:a", "128k",
-        os.path.basename(out_path),
-    ]
+    cmd = [_ffmpeg_exe(cfg), "-y", "-ss", str(start), "-to", str(end),
+           "-i", os.path.abspath(video_path)]
+
+    if layout == "crop":
+        # center-crop: 9:16 ke liye side kaat do (simple, tez)
+        vf = f"crop=ih*9/16:ih,scale={W}:{H}{sub}"
+        cmd += ["-vf", vf]
+    else:
+        # blur: poori video fit + upar-neeche blurred fill (default, professional look)
+        fc = (
+            f"[0:v]split=2[bg][fg];"
+            f"[bg]scale={W}:{H}:force_original_aspect_ratio=increase,"
+            f"crop={W}:{H},gblur=sigma=20[bg2];"
+            f"[fg]scale={W}:-2:force_original_aspect_ratio=decrease[fg2];"
+            f"[bg2][fg2]overlay=(W-w)/2:(H-h)/2{sub}[v]"
+        )
+        cmd += ["-filter_complex", fc, "-map", "[v]", "-map", "0:a?"]
+
+    cmd += ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+            "-c:a", "aac", "-b:a", "128k", os.path.basename(out_path)]
+
     subprocess.run(cmd, cwd=out_dir, check=True)
     return out_path

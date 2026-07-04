@@ -11,6 +11,7 @@
 
   "video_width": 1080,
   "video_height": 1920,
+  "layout": "blur",
 
   "caption_style": {
     "font": "Arial",
