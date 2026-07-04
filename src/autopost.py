@@ -49,6 +49,8 @@ def post_clip(clip_path, text, cfg, dry_run=True, title=None, caption=None):
     # --- LIVE (actually posts) ---
     yt_bot = cfg.get("youtube_bot_path", r"c:\xampp\htdocs\pr\youtube_bot")
     _config, uploader, instagram = _load_ytbot(yt_bot)
+    # clip_bot apni privacy control kare (.env chhue bina) — test-safe default private
+    _config.YT_PRIVACY = cfg.get("yt_privacy", "private")
     result = {}
     try:
         result["youtube"] = uploader.upload(clip_path, title, caption, tags)
