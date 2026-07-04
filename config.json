@@ -1,0 +1,25 @@
+{
+  "download_dir": "downloads",
+  "clips_dir": "clips",
+  "subtitle_lang": "en",
+  "ffmpeg_path": "tools/ffmpeg/ffmpeg.exe",
+
+  "clip_min_seconds": 21,
+  "clip_max_seconds": 34,
+  "max_clips_per_video": 10,
+  "skip_intro_seconds": 8,
+
+  "video_width": 1080,
+  "video_height": 1920,
+
+  "caption_style": {
+    "font": "Arial",
+    "fontsize": 16,
+    "primary_colour": "&H00FFFFFF",
+    "outline_colour": "&H00000000",
+    "outline": 3,
+    "bold": 1,
+    "alignment": 2,
+    "margin_v": 60
+  }
+}

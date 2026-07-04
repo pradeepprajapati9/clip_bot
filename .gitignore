@@ -1,0 +1,23 @@
+# --- Generated / bade files (GitHub pe nahi chahiye) ---
+downloads/
+clips/
+tools/
+*.mp4
+*.mkv
+*.webm
+*.part
+*.vtt
+*.srt
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
