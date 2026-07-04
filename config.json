@@ -14,6 +14,7 @@
   "layout": "blur",
 
   "youtube_bot_path": "../youtube_bot",
+  "use_llm": true,
   "hashtags": ["#shorts", "#motivation", "#podcast", "#speaking"],
 
   "caption_style": {

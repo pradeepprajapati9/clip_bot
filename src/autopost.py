@@ -31,9 +31,13 @@ def make_caption(text, hashtags):
     return title, caption
 
 
-def post_clip(clip_path, text, cfg, dry_run=True):
+def post_clip(clip_path, text, cfg, dry_run=True, title=None, caption=None):
     hashtags = cfg.get("hashtags", ["#shorts", "#podcast", "#motivation"])
-    title, caption = make_caption(text, hashtags)
+    # LLM ne title/caption diya to wahi use karo, warna auto-generate
+    if title and caption:
+        pass
+    else:
+        title, caption = make_caption(text, hashtags)
     tags = [h.lstrip("#") for h in hashtags]
 
     if dry_run:

@@ -15,6 +15,7 @@ from subtitles import parse_vtt
 from moments import make_candidates
 from clip import make_clip
 from autopost import post_clip
+from llm import pick_clips
 
 
 def _youtube_id(url):
@@ -67,16 +68,21 @@ def run(url, post_mode="off"):
     cues = parse_vtt(sub_path)
     print(f"      {len(cues)} caption lines mile")
 
-    print("\n[3/4] Candidate clips chune ja rahe hain...")
-    cands = make_candidates(
-        cues,
-        cfg.get("clip_min_seconds", 21),
-        cfg.get("clip_max_seconds", 34),
-        cfg.get("max_clips_per_video", 10),
-        cfg.get("skip_intro_seconds", 8),
-    )
+    min_s = cfg.get("clip_min_seconds", 21)
+    max_s = cfg.get("clip_max_seconds", 34)
+    n = cfg.get("max_clips_per_video", 10)
+
+    cands = None
+    if cfg.get("use_llm", False):
+        print("\n[3/4] Gemini se best clips chune ja rahe hain...")
+        cands = pick_clips(cues, cfg, n, min_s, max_s)
+    if not cands:
+        print("\n[3/4] Candidate clips chune ja rahe hain (heuristic)...")
+        cands = make_candidates(cues, min_s, max_s, n, cfg.get("skip_intro_seconds", 8))
+
     for k, c in enumerate(cands, 1):
-        print(f"      #{k} [{c['start']:.0f}-{c['end']:.0f}s] hook={c['hook']:.2f}  {c['text'][:70]}...")
+        tag = c.get("title", c["text"][:60])
+        print(f"      #{k} [{c['start']:.0f}-{c['end']:.0f}s] {tag[:70]}")
 
     print(f"\n[4/4] {len(cands)} clips ban rahe hain...")
     vid = info["id"]
@@ -85,7 +91,7 @@ def run(url, post_mode="off"):
         out = os.path.join(clips_dir, f"{vid}_{k:02d}.mp4")
         try:
             make_clip(video_path, cues, c["start"], c["end"], out, cfg)
-            made.append((out, c["text"]))
+            made.append((out, c))
             print(f"      OK  {out}")
         except Exception as e:
             print(f"      FAIL #{k}: {e}")
@@ -96,8 +102,9 @@ def run(url, post_mode="off"):
         live = (post_mode == "live")
         label = "LIVE POST" if live else "DRY-RUN (kuch post nahi hoga)"
         print(f"\n[POST] {label}:")
-        for out, text in made:
-            post_clip(out, text, cfg, dry_run=not live)
+        for out, c in made:
+            post_clip(out, c["text"], cfg, dry_run=not live,
+                      title=c.get("title"), caption=c.get("caption"))
     else:
         print("Ab inme se best manually dekho -> post karo -> views note karo (recipe test).")
 
