@@ -13,6 +13,9 @@
   "video_height": 1920,
   "layout": "blur",
 
+  "youtube_bot_path": "../youtube_bot",
+  "hashtags": ["#shorts", "#motivation", "#podcast", "#speaking"],
+
   "caption_style": {
     "font": "Arial",
     "fontsize": 16,

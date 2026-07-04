@@ -14,6 +14,7 @@ from download import download, _find_sub
 from subtitles import parse_vtt
 from moments import make_candidates
 from clip import make_clip
+from autopost import post_clip
 
 
 def _youtube_id(url):
@@ -29,7 +30,7 @@ def load_config():
     return cfg
 
 
-def run(url):
+def run(url, post_mode="off"):
     cfg = load_config()
     root = cfg["_root"]
     dl_dir = os.path.join(root, cfg.get("download_dir", "downloads"))
@@ -84,17 +85,31 @@ def run(url):
         out = os.path.join(clips_dir, f"{vid}_{k:02d}.mp4")
         try:
             make_clip(video_path, cues, c["start"], c["end"], out, cfg)
-            made.append(out)
+            made.append((out, c["text"]))
             print(f"      OK  {out}")
         except Exception as e:
             print(f"      FAIL #{k}: {e}")
 
     print(f"\nDone! {len(made)} clips '{clips_dir}' me ready hain.")
-    print("Ab inme se best manually dekho -> post karo -> views note karo (recipe test).")
+
+    if post_mode != "off":
+        live = (post_mode == "live")
+        label = "LIVE POST" if live else "DRY-RUN (kuch post nahi hoga)"
+        print(f"\n[POST] {label}:")
+        for out, text in made:
+            post_clip(out, text, cfg, dry_run=not live)
+    else:
+        print("Ab inme se best manually dekho -> post karo -> views note karo (recipe test).")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print('Usage: python src\\pipeline.py "<youtube-url>"')
+        print('Usage: python src\\pipeline.py "<youtube-url>" [--dry-post | --post]')
         sys.exit(1)
-    run(sys.argv[1])
+    flags = sys.argv[2:]
+    mode = "off"
+    if "--post" in flags:
+        mode = "live"
+    elif "--dry-post" in flags:
+        mode = "dry"
+    run(sys.argv[1], mode)
