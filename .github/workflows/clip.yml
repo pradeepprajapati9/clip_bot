@@ -32,7 +32,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Install Python deps
-        run: pip install --pre -U "yt-dlp[default]" requests google-api-python-client google-auth-oauthlib google-auth-httplib2
+        run: pip install --pre -U "yt-dlp[default]" bgutil-ytdlp-pot-provider requests google-api-python-client google-auth-oauthlib google-auth-httplib2
+
+      - name: Start POT provider (datacenter YouTube download fix)
+        run: |
+          docker run -d --name bgutil -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider
+          sleep 6
+          echo "POT provider started"
 
       - name: Queue + platform set
         env:
