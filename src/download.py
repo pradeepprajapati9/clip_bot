@@ -21,6 +21,10 @@ def _base_opts(out_dir, ffmpeg_location=None):
     }
     if ffmpeg_location:
         opts["ffmpeg_location"] = ffmpeg_location   # merge ke liye ffmpeg kahan hai
+    # cookies.txt ho to use karo (cloud pe YouTube "not a bot" ke liye)
+    cookies = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "cookies.txt")
+    if os.path.exists(cookies) and os.path.getsize(cookies) > 0:
+        opts["cookiefile"] = cookies
     return opts
 
 

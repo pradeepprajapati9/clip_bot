@@ -4,6 +4,7 @@ clips/
 tools/
 data/
 queue.txt
+cookies.txt
 *.mp4
 *.mkv
 *.webm
