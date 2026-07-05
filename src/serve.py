@@ -154,9 +154,9 @@ class H(http.server.BaseHTTPRequestHandler):
         added = add_urls(data.get("urls", [""])[0])
         where = " + ".join(p.title() for p in plats) or "kahin nahi"
         if added:
-            trigger_run()   # turant clips + upload shuru
-            msg = (f"🚀 {added} URL add! Clips ban rahe hain + {where} pe upload ho raha hai "
-                   f"(2-3 min). views.bat se baad me views dekho.")
+            trigger_run()   # turant clips + upload (laptop pe)
+            msg = (f"🚀 {added} URL add! Clips ban rahe + {where} pe upload ho raha "
+                   f"(2-3 min). views.bat se views dekho.")
         else:
             msg = "⚠️ Naya URL nahi mila (pehle se queue me tha ya khaali)."
         self._send(page(msg))
