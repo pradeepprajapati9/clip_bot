@@ -12,25 +12,13 @@ from moments import clean_cues, _build_segment
 
 
 def _gemini_fn(cfg):
-    """youtube_bot se gemini_call laata hai, agar key set ho."""
-    yt_bot = cfg.get("youtube_bot_path", "../youtube_bot")
-    root = cfg.get("_root", "")
-    yt_bot = yt_bot if os.path.isabs(yt_bot) else os.path.join(root, yt_bot)
-    yt_bot = os.path.abspath(yt_bot)
-    if not os.path.isdir(yt_bot):
+    """Self-contained gemini_call (secrets se). Key na ho to None -> heuristic fallback."""
+    import settings
+    if not settings.GEMINI_API_KEY:
+        print("[llm] GEMINI_API_KEY nahi mila -> heuristic use hoga")
         return None
-    if yt_bot not in sys.path:
-        sys.path.insert(0, yt_bot)
-    try:
-        import config as ytcfg
-        if not getattr(ytcfg, "GEMINI_API_KEY", ""):
-            print("[llm] GEMINI_API_KEY nahi mila -> heuristic use hoga")
-            return None
-        from bot.thinker import gemini_call
-        return gemini_call
-    except Exception as e:
-        print(f"[llm] gemini load fail: {e} -> heuristic")
-        return None
+    from _vendor import gemini_call
+    return gemini_call
 
 
 def _extract_json(text):

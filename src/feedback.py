@@ -35,14 +35,9 @@ def _save(cfg, data):
 
 
 def _ytbot_config(cfg):
-    yt_bot = cfg.get("youtube_bot_path", "../youtube_bot")
-    root = cfg.get("_root", "")
-    yt_bot = yt_bot if os.path.isabs(yt_bot) else os.path.join(root, yt_bot)
-    yt_bot = os.path.abspath(yt_bot)
-    if yt_bot not in sys.path:
-        sys.path.insert(0, yt_bot)
-    import config as ytcfg
-    return ytcfg
+    """Ab settings module deta hai (YT_API_KEY, IG_ACCESS_TOKEN, IG_API_BASE) — secrets se."""
+    import settings
+    return settings
 
 
 def record_post(cfg, platform, post_id, url, title, hook, source):

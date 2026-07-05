@@ -1,0 +1,55 @@
+name: clip-bot
+
+# Phone se: GitHub -> Actions tab -> "clip-bot" -> Run workflow -> URL daalo -> Run
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Source video URL (YouTube)'
+        required: true
+      platforms:
+        description: 'Kahan post kare?'
+        type: choice
+        options: [both, instagram, youtube]
+        default: both
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: pip install yt-dlp requests google-api-python-client google-auth-oauthlib google-auth-httplib2
+
+      - name: Queue + platform set
+        env:
+          URL: ${{ github.event.inputs.url }}
+          PLATFORMS: ${{ github.event.inputs.platforms }}
+        run: |
+          echo "$URL" > queue.txt
+          python - <<'PY'
+          import json, os
+          m = {"both": ["instagram", "youtube"], "instagram": ["instagram"], "youtube": ["youtube"]}
+          cfg = json.load(open("config.json"))
+          cfg["post_to"] = m.get(os.environ.get("PLATFORMS", "both"), ["instagram", "youtube"])
+          json.dump(cfg, open("config.json", "w"), indent=2)
+          print("post_to =", cfg["post_to"])
+          PY
+
+      - name: Run clip bot (make clips + upload)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          YT_TOKEN: ${{ secrets.YT_TOKEN }}
+        run: python src/pipeline.py --queue --post

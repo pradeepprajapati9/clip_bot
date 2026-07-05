@@ -1,22 +1,11 @@
-"""Clip ko auto-post karta hai — YouTube + Instagram — youtube_bot ko reuse karke.
+"""Clip ko auto-post karta hai — YouTube + Instagram — self-contained (secrets se).
 
 SAFETY: default dry_run=True -> sirf dikhata hai kya post hoga, actually post NAHI karta.
-Live posting tabhi jab dry_run=False (aur tera explicit OK ho).
+Live posting tabhi jab dry_run=False.
 """
 import os
-import sys
 
 import feedback
-
-
-def _load_ytbot(yt_bot_path):
-    """youtube_bot ke uploader + instagram module import karta hai."""
-    yt_bot_path = os.path.abspath(yt_bot_path)
-    if yt_bot_path not in sys.path:
-        sys.path.insert(0, yt_bot_path)
-    import config                       # youtube_bot/config.py
-    from bot import uploader, instagram
-    return config, uploader, instagram
 
 
 def make_caption(text, hashtags):
@@ -48,16 +37,14 @@ def post_clip(clip_path, text, cfg, dry_run=True, title=None, caption=None, sour
         print(f"             caption: {caption[:70]}...")
         return {"dry_run": True, "title": title}
 
-    # --- LIVE (actually posts) ---
-    yt_bot = cfg.get("youtube_bot_path", r"c:\xampp\htdocs\pr\youtube_bot")
-    _config, uploader, instagram = _load_ytbot(yt_bot)
-    # clip_bot apni privacy control kare (.env chhue bina) — test-safe default private
-    _config.YT_PRIVACY = cfg.get("yt_privacy", "private")
+    # --- LIVE (actually posts) — self-contained, secrets se ---
+    from _vendor import yt_upload, ig_post_reel
+    privacy = cfg.get("yt_privacy", "public")
     post_to = cfg.get("post_to", ["youtube", "instagram"])
     result = {}
     if "youtube" in post_to:
         try:
-            yt_url = uploader.upload(clip_path, title, caption, tags)
+            yt_url = yt_upload(clip_path, title, caption, tags, privacy)
             result["youtube"] = yt_url
             vid = yt_url.rstrip("/").split("/")[-1] if yt_url else None
             feedback.record_post(cfg, "youtube", vid, yt_url, title, text, source)
@@ -66,7 +53,7 @@ def post_clip(clip_path, text, cfg, dry_run=True, title=None, caption=None, sour
             print(f"   [youtube] error: {e}")
     if "instagram" in post_to:
         try:
-            pid = instagram.post_reel(clip_path, caption)
+            pid = ig_post_reel(clip_path, caption)
             result["instagram"] = pid
             if pid:
                 feedback.record_post(cfg, "instagram", pid, "", title, text, source)
