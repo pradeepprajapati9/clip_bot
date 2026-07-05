@@ -4,7 +4,9 @@ Chalाने ke liye: add.bat double-click karo (ya: python src\\serve.py)
 Phir browser me khulega http://localhost:8000 — URL paste karo, Add dabao. Bas.
 """
 import os
+import sys
 import json
+import subprocess
 import webbrowser
 import urllib.parse
 import http.server
@@ -37,6 +39,17 @@ def add_urls(text):
                 existing.add(u)
                 added += 1
     return added
+
+
+def trigger_run():
+    """Pipeline ko background me chalata hai (--queue --post) — turant clips + upload."""
+    os.makedirs(os.path.join(ROOT, "data"), exist_ok=True)
+    logf = open(os.path.join(ROOT, "data", "daily.log"), "a", encoding="utf-8")
+    flags = 0x08000000 if os.name == "nt" else 0  # CREATE_NO_WINDOW
+    subprocess.Popen(
+        [sys.executable, os.path.join(ROOT, "src", "pipeline.py"), "--queue", "--post"],
+        cwd=ROOT, stdout=logf, stderr=logf, creationflags=flags,
+    )
 
 
 def set_platforms(plats):
@@ -105,12 +118,13 @@ summary::-webkit-details-marker{{display:none}}summary::before{{content:"📋 "}
   </div>
   <label>Video URL(s) <small>(ek line me ek)</small></label>
   <textarea name=urls placeholder="https://www.youtube.com/watch?v=..."></textarea>
-  <button>Add to queue ✅</button>
+  <p class=order>⚠️ <b>Ek baar me 1 URL</b> — 1 URL se 6 clips banenge (YouTube daily max 6). Zyada = YouTube fail.</p>
+  <button>Generate & Upload 🚀</button>
 </form>
 <div class=card>
   <b>Queue me abhi ({len(q)}):</b>
   <ul>{qlist}</ul>
-  <small>Cron roz 10 AM inhe post karega. Ek baar post hone ke baad apne aap hat jate hain.</small>
+  <small>Generate dabate hi upload shuru ho jayega. Post hone ke baad apne aap hat jate hain.</small>
 </div>
 </div></body></html>"""
 
@@ -139,7 +153,13 @@ class H(http.server.BaseHTTPRequestHandler):
         set_platforms(plats)
         added = add_urls(data.get("urls", [""])[0])
         where = " + ".join(p.title() for p in plats) or "kahin nahi"
-        self._send(page(f"✅ {added} URL add ho gaye. Post to: {where}"))
+        if added:
+            trigger_run()   # turant clips + upload shuru
+            msg = (f"🚀 {added} URL add! Clips ban rahe hain + {where} pe upload ho raha hai "
+                   f"(2-3 min). views.bat se baad me views dekho.")
+        else:
+            msg = "⚠️ Naya URL nahi mila (pehle se queue me tha ya khaali)."
+        self._send(page(msg))
 
     def log_message(self, *a):
         pass
