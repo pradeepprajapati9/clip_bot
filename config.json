@@ -3,22 +3,27 @@
   "clips_dir": "clips",
   "subtitle_lang": "en",
   "ffmpeg_path": "tools/ffmpeg/ffmpeg.exe",
-
   "clip_min_seconds": 21,
   "clip_max_seconds": 34,
   "max_clips_per_video": 10,
   "posts_per_run": 6,
   "skip_intro_seconds": 8,
-
   "video_width": 1080,
   "video_height": 1920,
   "layout": "blur",
-
   "youtube_bot_path": "../youtube_bot",
   "use_llm": true,
   "yt_privacy": "public",
-  "hashtags": ["#shorts", "#motivation", "#podcast", "#speaking"],
-
+  "post_to": [
+    "instagram",
+    "youtube"
+  ],
+  "hashtags": [
+    "#shorts",
+    "#motivation",
+    "#podcast",
+    "#speaking"
+  ],
   "caption_style": {
     "font": "Arial",
     "fontsize": 16,

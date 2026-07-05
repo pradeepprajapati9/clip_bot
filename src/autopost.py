@@ -53,21 +53,24 @@ def post_clip(clip_path, text, cfg, dry_run=True, title=None, caption=None, sour
     _config, uploader, instagram = _load_ytbot(yt_bot)
     # clip_bot apni privacy control kare (.env chhue bina) — test-safe default private
     _config.YT_PRIVACY = cfg.get("yt_privacy", "private")
+    post_to = cfg.get("post_to", ["youtube", "instagram"])
     result = {}
-    try:
-        yt_url = uploader.upload(clip_path, title, caption, tags)
-        result["youtube"] = yt_url
-        vid = yt_url.rstrip("/").split("/")[-1] if yt_url else None
-        feedback.record_post(cfg, "youtube", vid, yt_url, title, text, source)
-    except Exception as e:
-        result["youtube_error"] = str(e)
-        print(f"   [youtube] error: {e}")
-    try:
-        pid = instagram.post_reel(clip_path, caption)
-        result["instagram"] = pid
-        if pid:
-            feedback.record_post(cfg, "instagram", pid, "", title, text, source)
-    except Exception as e:
-        result["instagram_error"] = str(e)
-        print(f"   [instagram] error: {e}")
+    if "youtube" in post_to:
+        try:
+            yt_url = uploader.upload(clip_path, title, caption, tags)
+            result["youtube"] = yt_url
+            vid = yt_url.rstrip("/").split("/")[-1] if yt_url else None
+            feedback.record_post(cfg, "youtube", vid, yt_url, title, text, source)
+        except Exception as e:
+            result["youtube_error"] = str(e)
+            print(f"   [youtube] error: {e}")
+    if "instagram" in post_to:
+        try:
+            pid = instagram.post_reel(clip_path, caption)
+            result["instagram"] = pid
+            if pid:
+                feedback.record_post(cfg, "instagram", pid, "", title, text, source)
+        except Exception as e:
+            result["instagram_error"] = str(e)
+            print(f"   [instagram] error: {e}")
     return result
