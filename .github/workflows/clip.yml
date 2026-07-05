@@ -55,17 +55,7 @@ jobs:
           print("post_to =", cfg["post_to"])
           PY
 
-      - name: Write YouTube cookies (agar secret hai)
-        env:
-          YT_COOKIES: ${{ secrets.YT_COOKIES }}
-        run: |
-          if [ -n "$YT_COOKIES" ]; then
-            printf '%s' "$YT_COOKIES" > cookies.txt
-            echo "cookies.txt written ($(wc -l < cookies.txt) lines)"
-          else
-            echo "YT_COOKIES secret nahi hai — YouTube download block ho sakta"
-          fi
-
+      # Cookies datacenter pe rotate/invalid ho jaate hain -> POT provider (anonymous) use karo
       - name: Run clip bot (make clips + upload)
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
