@@ -7,6 +7,7 @@
   "clip_min_seconds": 21,
   "clip_max_seconds": 34,
   "max_clips_per_video": 10,
+  "posts_per_run": 6,
   "skip_intro_seconds": 8,
 
   "video_width": 1080,

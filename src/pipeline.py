@@ -101,8 +101,10 @@ def run(url, post_mode="off"):
     if post_mode != "off":
         live = (post_mode == "live")
         label = "LIVE POST" if live else "DRY-RUN (kuch post nahi hoga)"
-        print(f"\n[POST] {label}:")
-        for out, c in made:
+        cap = cfg.get("posts_per_run", 6)
+        to_post = made[:cap]   # T&C safety: sirf top-N best clips post honge
+        print(f"\n[POST] {label} — {len(to_post)}/{len(made)} clips (cap {cap}/run):")
+        for out, c in to_post:
             post_clip(out, c["text"], cfg, dry_run=not live,
                       title=c.get("title"), caption=c.get("caption"), source=url)
     else:
