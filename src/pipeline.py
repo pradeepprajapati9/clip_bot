@@ -104,15 +104,26 @@ def run(url, post_mode="off"):
         print(f"\n[POST] {label}:")
         for out, c in made:
             post_clip(out, c["text"], cfg, dry_run=not live,
-                      title=c.get("title"), caption=c.get("caption"))
+                      title=c.get("title"), caption=c.get("caption"), source=url)
     else:
         print("Ab inme se best manually dekho -> post karo -> views note karo (recipe test).")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print('Usage: python src\\pipeline.py "<youtube-url>" [--dry-post | --post]')
+        print('Usage:')
+        print('  python src\\pipeline.py "<youtube-url>" [--dry-post | --post]')
+        print('  python src\\pipeline.py --feedback     (posted clips ke views padho)')
         sys.exit(1)
+
+    # feedback mode: posted clips ke stats refresh + ranked report
+    if sys.argv[1] == "--feedback":
+        import feedback
+        cfg = load_config()
+        feedback.refresh(cfg)
+        feedback.report(cfg)
+        sys.exit(0)
+
     flags = sys.argv[2:]
     mode = "off"
     if "--post" in flags:

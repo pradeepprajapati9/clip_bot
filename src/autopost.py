@@ -6,6 +6,8 @@ Live posting tabhi jab dry_run=False (aur tera explicit OK ho).
 import os
 import sys
 
+import feedback
+
 
 def _load_ytbot(yt_bot_path):
     """youtube_bot ke uploader + instagram module import karta hai."""
@@ -31,7 +33,7 @@ def make_caption(text, hashtags):
     return title, caption
 
 
-def post_clip(clip_path, text, cfg, dry_run=True, title=None, caption=None):
+def post_clip(clip_path, text, cfg, dry_run=True, title=None, caption=None, source=None):
     hashtags = cfg.get("hashtags", ["#shorts", "#podcast", "#motivation"])
     # LLM ne title/caption diya to wahi use karo, warna auto-generate
     if title and caption:
@@ -53,12 +55,18 @@ def post_clip(clip_path, text, cfg, dry_run=True, title=None, caption=None):
     _config.YT_PRIVACY = cfg.get("yt_privacy", "private")
     result = {}
     try:
-        result["youtube"] = uploader.upload(clip_path, title, caption, tags)
+        yt_url = uploader.upload(clip_path, title, caption, tags)
+        result["youtube"] = yt_url
+        vid = yt_url.rstrip("/").split("/")[-1] if yt_url else None
+        feedback.record_post(cfg, "youtube", vid, yt_url, title, text, source)
     except Exception as e:
         result["youtube_error"] = str(e)
         print(f"   [youtube] error: {e}")
     try:
-        result["instagram"] = instagram.post_reel(clip_path, caption)
+        pid = instagram.post_reel(clip_path, caption)
+        result["instagram"] = pid
+        if pid:
+            feedback.record_post(cfg, "instagram", pid, "", title, text, source)
     except Exception as e:
         result["instagram_error"] = str(e)
         print(f"   [instagram] error: {e}")

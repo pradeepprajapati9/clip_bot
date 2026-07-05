@@ -2,6 +2,7 @@
 downloads/
 clips/
 tools/
+data/
 *.mp4
 *.mkv
 *.webm
