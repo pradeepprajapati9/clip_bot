@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>clip_bot · Campaign Input</title>
+<style>
+  :root { --bg:#0f1117; --card:#181b24; --line:#2a2f3a; --fg:#e8ebf1; --mut:#9aa3b2;
+          --acc:#6d5efc; --acc2:#8b7bff; --ok:#28c76f; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+         background:var(--bg); color:var(--fg); line-height:1.5; padding:20px; }
+  .wrap { max-width:720px; margin:0 auto; }
+  header { text-align:center; margin-bottom:24px; }
+  header h1 { margin:0; font-size:1.7rem; }
+  header h1 span { color:var(--acc2); }
+  header p { color:var(--mut); margin:6px 0 0; font-size:.95rem; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px;
+          padding:20px; margin-bottom:18px; }
+  label { display:block; font-weight:600; margin:14px 0 6px; font-size:.9rem; }
+  label:first-child { margin-top:0; }
+  .hint { color:var(--mut); font-weight:400; font-size:.8rem; }
+  input, textarea, select { width:100%; background:#0f131c; color:var(--fg);
+          border:1px solid var(--line); border-radius:9px; padding:11px 12px;
+          font-size:.95rem; font-family:inherit; }
+  textarea { resize:vertical; min-height:80px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; }
+  .row > div { flex:1; min-width:130px; }
+  .chk { display:flex; gap:16px; align-items:center; margin-top:6px; }
+  .chk label { margin:0; display:flex; gap:7px; align-items:center; font-weight:500; }
+  .chk input { width:auto; }
+  button { width:100%; background:var(--acc); color:#fff; border:0; border-radius:10px;
+           padding:14px; font-size:1rem; font-weight:700; cursor:pointer; margin-top:20px; }
+  button:hover { background:var(--acc2); }
+  .out { background:#0b0e14; border:1px solid var(--line); border-radius:10px;
+         padding:14px; white-space:pre-wrap; word-break:break-word; font-family:
+         ui-monospace,Menlo,Consolas,monospace; font-size:.82rem; color:#cfe3ff; }
+  .copy { background:var(--ok); margin-top:10px; }
+  .copy:hover { background:#22b263; }
+  .note { color:var(--mut); font-size:.82rem; margin-top:8px; }
+  a { color:var(--acc2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎬 clip_<span>bot</span> · Campaign Input</h1>
+    <p>Fill this, hit Generate, copy the config, and send it to Claude — the bot does the rest.</p>
+  </header>
+
+  <div class="card">
+    <label>Campaign name</label>
+    <input id="name" placeholder="e.g. will.i.am - Interview Clipping">
+
+    <label>Platforms to post</label>
+    <div class="chk">
+      <label><input type="checkbox" id="ig" checked> Instagram</label>
+      <label><input type="checkbox" id="yt"> YouTube</label>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>My linked account</label>
+        <input id="account" placeholder="creati_vity_9953">
+      </div>
+      <div>
+        <label>Joined + linked on Whop?</label>
+        <select id="joined"><option>NO</option><option>YES</option></select>
+      </div>
+    </div>
+
+    <label>Source video URLs <span class="hint">(the provided assets — one YouTube URL per line)</span></label>
+    <textarea id="sources" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..."></textarea>
+
+    <label>On-screen text overlay <span class="hint">(brief requirement, e.g. artist name)</span></label>
+    <input id="overlay" placeholder="will.i.am">
+
+    <label>Caption tags / hashtags</label>
+    <input id="tags" placeholder="#willavailable #willpower will.i.am">
+
+    <div class="row">
+      <div>
+        <label>Max posts per account</label>
+        <input id="maxposts" type="number" value="4" min="1">
+      </div>
+      <div>
+        <label>CPM / payout note</label>
+        <input id="cpm" placeholder="$1.20/1K, max $250">
+      </div>
+    </div>
+
+    <label>Extra rules / notes</label>
+    <textarea id="notes" placeholder="e.g. 30%+ Tier 1 audience required; must clip from provided assets only"></textarea>
+
+    <button onclick="gen()">Generate config ⚙️</button>
+  </div>
+
+  <div class="card" id="outcard" style="display:none">
+    <label>📋 Config — copy this and send to Claude</label>
+    <div class="out" id="out"></div>
+    <button class="copy" onclick="copyOut()">Copy to clipboard</button>
+    <p class="note">Your inputs are saved in this browser automatically.</p>
+  </div>
+</div>
+
+<script>
+  const F = ['name','account','joined','sources','overlay','tags','maxposts','cpm','notes'];
+  // restore saved inputs
+  window.addEventListener('load', () => {
+    try {
+      const s = JSON.parse(localStorage.getItem('clipbot_campaign') || '{}');
+      F.forEach(id => { if (s[id] !== undefined) document.getElementById(id).value = s[id]; });
+      if (s.ig !== undefined) document.getElementById('ig').checked = s.ig;
+      if (s.yt !== undefined) document.getElementById('yt').checked = s.yt;
+    } catch (e) {}
+  });
+  function save() {
+    const s = {}; F.forEach(id => s[id] = document.getElementById(id).value);
+    s.ig = document.getElementById('ig').checked; s.yt = document.getElementById('yt').checked;
+    localStorage.setItem('clipbot_campaign', JSON.stringify(s));
+  }
+  function gen() {
+    save();
+    const v = id => document.getElementById(id).value.trim();
+    const plats = [];
+    if (document.getElementById('ig').checked) plats.push('Instagram');
+    if (document.getElementById('yt').checked) plats.push('YouTube');
+    const srcs = v('sources').split('\n').map(x => x.trim()).filter(Boolean)
+                  .map((u,i) => `  ${i+1}. ${u}`).join('\n') || '  (none)';
+    const txt =
+`=== CLIP_BOT CAMPAIGN ===
+Name        : ${v('name')}
+Platforms   : ${plats.join(', ') || '(none)'}
+Account     : ${v('account')}
+Joined+link : ${v('joined')}
+Overlay text: ${v('overlay')}
+Caption tags: ${v('tags')}
+Max posts   : ${v('maxposts')}
+CPM/payout  : ${v('cpm')}
+Notes       : ${v('notes')}
+Sources:
+${srcs}
+=========================`;
+    document.getElementById('out').textContent = txt;
+    document.getElementById('outcard').style.display = 'block';
+    document.getElementById('outcard').scrollIntoView({behavior:'smooth'});
+  }
+  function copyOut() {
+    navigator.clipboard.writeText(document.getElementById('out').textContent)
+      .then(() => { const b = event.target; b.textContent = 'Copied ✓';
+                    setTimeout(() => b.textContent = 'Copy to clipboard', 1500); });
+  }
+</script>
+</body>
+</html>
