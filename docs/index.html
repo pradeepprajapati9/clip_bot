@@ -38,12 +38,42 @@
          padding:16px; white-space:pre-wrap; word-break:break-word;
          font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.85rem; color:#cfe3ff; }
   #outcard { margin-top:18px; }
+  details { background:var(--card); border:1px solid var(--line); border-radius:14px;
+            padding:4px 18px; margin-bottom:18px; }
+  summary { cursor:pointer; font-weight:700; padding:14px 0; font-size:1rem; list-style:none; }
+  summary::-webkit-details-marker { display:none; }
+  summary::before { content:"📋 "; }
+  details[open] summary { border-bottom:1px solid var(--line); margin-bottom:12px; }
+  .flags { font-size:.92rem; margin:0 0 14px; padding-left:2px; }
+  .flags li { list-style:none; margin:7px 0; }
+  .g::before { content:"✅ "; } .r::before { content:"❌ "; }
+  .order { background:#10141d; border-radius:10px; padding:12px 14px; font-size:.88rem;
+           color:#cfe3ff; margin:0 0 12px; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>🎬 clip_<span>bot</span></h1>
   <p class="sub">Paste karo → Generate → Copy → Claude ko bhejo</p>
+
+  <details>
+    <summary>Achha campaign kaise chunein?</summary>
+    <ul class="flags">
+      <li class="g">Instagram ya YouTube allowed ho (sirf TikTok = India ban)</li>
+      <li class="g">Budget bacha ho (jaise $500/$5000)</li>
+      <li class="g">CPM $1/1K se upar</li>
+      <li class="g">Podcast / interview / streamer content (clear speech)</li>
+      <li class="g">Source video/link diya ho</li>
+    </ul>
+    <ul class="flags">
+      <li class="r">"30%+ Tier 1 audience required" — Indian views count nahi honge</li>
+      <li class="r">Budget full ($5000/$5000) = dead campaign</li>
+      <li class="r">CPM $0.12/1K type = bekaar</li>
+      <li class="r">Gambling / casino = India me risk</li>
+      <li class="r">"Use our AI tool" ya heavy editing = bot fit nahi</li>
+    </ul>
+    <p class="order"><b>5-second check:</b> Platform → Tier → Budget → CPM → Content</p>
+  </details>
 
   <div class="card">
     <label>1. Campaign ka naam
