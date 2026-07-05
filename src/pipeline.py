@@ -109,10 +109,47 @@ def run(url, post_mode="off"):
         print("Ab inme se best manually dekho -> post karo -> views note karo (recipe test).")
 
 
+def run_queue(mode="off"):
+    """queue.txt ke saare (naye) source URLs process karta hai — ek saath kai videos.
+    Pehle process ho chuke URLs skip karta hai (data/processed.txt)."""
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    qfile = os.path.join(root, "queue.txt")
+    if not os.path.exists(qfile):
+        print(f"queue.txt nahi mila. Bana ke usme source URLs daalo (ek line me ek):\n  {qfile}")
+        return
+    done_file = os.path.join(root, "data", "processed.txt")
+    os.makedirs(os.path.dirname(done_file), exist_ok=True)
+    done = set()
+    if os.path.exists(done_file):
+        done = set(l.strip() for l in open(done_file, encoding="utf-8") if l.strip())
+
+    urls = []
+    for line in open(qfile, encoding="utf-8"):
+        u = line.strip()
+        if u and not u.startswith("#") and u not in done:
+            urls.append(u)
+
+    if not urls:
+        print("queue.txt me koi naya URL nahi (sab process ho chuke ya khaali).")
+        return
+
+    print(f"\n===== QUEUE: {len(urls)} naye video process honge =====")
+    for i, u in enumerate(urls, 1):
+        print(f"\n########## [{i}/{len(urls)}] {u} ##########")
+        try:
+            run(u, mode)
+            with open(done_file, "a", encoding="utf-8") as f:
+                f.write(u + "\n")
+        except Exception as e:
+            print(f"[queue] FAIL {u}: {e}")
+    print(f"\n===== QUEUE DONE ({len(urls)} videos) =====")
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print('Usage:')
         print('  python src\\pipeline.py "<youtube-url>" [--dry-post | --post]')
+        print('  python src\\pipeline.py --queue [--dry-post | --post]  (queue.txt ke saare URLs)')
         print('  python src\\pipeline.py --feedback     (posted clips ke views padho)')
         sys.exit(1)
 
@@ -130,4 +167,8 @@ if __name__ == "__main__":
         mode = "live"
     elif "--dry-post" in flags:
         mode = "dry"
-    run(sys.argv[1], mode)
+
+    if sys.argv[1] == "--queue":
+        run_queue(mode)
+    else:
+        run(sys.argv[1], mode)

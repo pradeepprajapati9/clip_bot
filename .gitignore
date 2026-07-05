@@ -3,6 +3,7 @@ downloads/
 clips/
 tools/
 data/
+queue.txt
 *.mp4
 *.mkv
 *.webm
