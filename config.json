@@ -15,7 +15,7 @@
 
   "youtube_bot_path": "../youtube_bot",
   "use_llm": true,
-  "yt_privacy": "private",
+  "yt_privacy": "public",
   "hashtags": ["#shorts", "#motivation", "#podcast", "#speaking"],
 
   "caption_style": {
