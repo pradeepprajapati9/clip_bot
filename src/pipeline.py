@@ -55,7 +55,8 @@ def run(url, post_mode="off"):
         info = {"id": vid_guess, "title": vid_guess}
     else:
         print(f"\n[1/4] Download ho raha hai: {url}")
-        video_path, sub_path, info = download(url, dl_dir, cfg.get("subtitle_lang", "en"), ffmpeg_dir)
+        video_path, sub_path, info = download(url, dl_dir, cfg.get("subtitle_lang", "en"),
+                                              ffmpeg_dir, cfg.get("cookies_browser"))
     print(f"      video: {video_path}")
     print(f"      subs : {sub_path}")
 
@@ -88,7 +89,9 @@ def run(url, post_mode="off"):
     vid = info["id"]
     made = []
     for k, c in enumerate(cands, 1):
-        out = os.path.join(clips_dir, f"{vid}_{k:02d}.mp4")
+        # "clip_" prefix taaki filename kabhi dash (-) se shuru na ho (ffmpeg use option samajh leta hai)
+        safe = vid.lstrip("-_")
+        out = os.path.join(clips_dir, f"clip_{safe}_{k:02d}.mp4")
         try:
             make_clip(video_path, cues, c["start"], c["end"], out, cfg)
             made.append((out, c))

@@ -10,7 +10,7 @@ import time
 import yt_dlp
 
 
-def _base_opts(out_dir, ffmpeg_location=None):
+def _base_opts(out_dir, ffmpeg_location=None, cookies_browser=None):
     opts = {
         "outtmpl": os.path.join(out_dir, "%(id)s.%(ext)s"),
         "quiet": False,
@@ -21,10 +21,13 @@ def _base_opts(out_dir, ffmpeg_location=None):
     }
     if ffmpeg_location:
         opts["ffmpeg_location"] = ffmpeg_location   # merge ke liye ffmpeg kahan hai
-    # cookies.txt ho to use karo (cloud pe YouTube "not a bot" ke liye)
+    # cookies.txt ho to use karo (cloud)
     cookies = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "cookies.txt")
     if os.path.exists(cookies) and os.path.getsize(cookies) > 0:
         opts["cookiefile"] = cookies
+    elif cookies_browser:
+        # local: browser ke logged-in YouTube cookies (bot-check fix)
+        opts["cookiesfrombrowser"] = (cookies_browser,)
     return opts
 
 
@@ -39,8 +42,8 @@ def _find_sub(out_dir, vid, sub_lang):
     return None
 
 
-def _try_subs(url, out_dir, sub_lang, attempts=3, ffmpeg_location=None):
-    opts = _base_opts(out_dir, ffmpeg_location)
+def _try_subs(url, out_dir, sub_lang, attempts=3, ffmpeg_location=None, cookies_browser=None):
+    opts = _base_opts(out_dir, ffmpeg_location, cookies_browser)
     opts.update({
         "skip_download": True,
         "writeautomaticsub": True,
@@ -61,12 +64,12 @@ def _try_subs(url, out_dir, sub_lang, attempts=3, ffmpeg_location=None):
     return None
 
 
-def download(url, out_dir="downloads", sub_lang="en", ffmpeg_location=None):
+def download(url, out_dir="downloads", sub_lang="en", ffmpeg_location=None, cookies_browser=None):
     """Returns: (video_path, subtitle_path or None, info_dict)"""
     os.makedirs(out_dir, exist_ok=True)
 
     # 1) Video download (info ke saath)
-    vopts = _base_opts(out_dir, ffmpeg_location)
+    vopts = _base_opts(out_dir, ffmpeg_location, cookies_browser)
     vopts.update({
         "format": "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b",
         "merge_output_format": "mp4",
@@ -77,7 +80,8 @@ def download(url, out_dir="downloads", sub_lang="en", ffmpeg_location=None):
     video_path = os.path.join(out_dir, vid + ".mp4")
 
     # 2) Subtitles alag se (best-effort)
-    sub_path = _try_subs(url, out_dir, sub_lang, ffmpeg_location=ffmpeg_location)
+    sub_path = _try_subs(url, out_dir, sub_lang, ffmpeg_location=ffmpeg_location,
+                         cookies_browser=cookies_browser)
 
     return video_path, sub_path, info
 

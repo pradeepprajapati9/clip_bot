@@ -2,6 +2,7 @@
   "download_dir": "downloads",
   "clips_dir": "clips",
   "subtitle_lang": "en",
+  "cookies_browser": "chrome",
   "ffmpeg_path": "tools/ffmpeg/ffmpeg.exe",
   "clip_min_seconds": 21,
   "clip_max_seconds": 34,
