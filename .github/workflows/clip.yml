@@ -32,7 +32,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Install Python deps
-        run: pip install yt-dlp requests google-api-python-client google-auth-oauthlib google-auth-httplib2
+        run: pip install --pre -U "yt-dlp[default]" requests google-api-python-client google-auth-oauthlib google-auth-httplib2
 
       - name: Queue + platform set
         env:
