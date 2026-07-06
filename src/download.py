@@ -64,11 +64,45 @@ def _try_subs(url, out_dir, sub_lang, attempts=3, ffmpeg_location=None, cookies_
     return None
 
 
+def _sanitize(s):
+    return "".join(c if (c.isalnum() or c in "_-") else "_" for c in s)[:40]
+
+
+def _download_drive(url, out_dir):
+    """Google Drive file ya folder se video download (gdown)."""
+    import gdown
+    os.makedirs(out_dir, exist_ok=True)
+    if "/folders/" in url:
+        print("      [drive] folder download ho raha...")
+        files = gdown.download_folder(url, output=out_dir, quiet=False, use_cookies=False) or []
+        vids = [f for f in files if str(f).lower().endswith(
+            (".mp4", ".mov", ".mkv", ".webm", ".m4v"))]
+        if not vids:
+            print("[!] Drive folder me koi video nahi mila.")
+            return None, None, None
+        path = vids[0]
+        print(f"      [drive] {len(vids)} video mile, pehla use: {os.path.basename(path)}")
+    else:
+        path = os.path.join(out_dir, "drive_video.mp4")
+        gdown.download(url, path, quiet=False, fuzzy=True)
+        if not os.path.exists(path):
+            print("[!] Drive download fail.")
+            return None, None, None
+    vid = _sanitize(os.path.splitext(os.path.basename(path))[0]) or "drive"
+    return path, None, {"id": vid, "title": os.path.basename(path)}
+
+
 def download(url, out_dir="downloads", sub_lang="en", ffmpeg_location=None, cookies_browser=None):
-    """Returns: (video_path, subtitle_path or None, info_dict)"""
+    """Returns: (video_path, subtitle_path or None, info_dict). Source: YouTube/Instagram/Drive."""
     os.makedirs(out_dir, exist_ok=True)
 
-    # 1) Video download (info ke saath)
+    if "docs.google.com" in url:
+        print("[!] Ye Google DOC hai (rules), video nahi. Isme se actual VIDEO ka link nikaal ke do.")
+        return None, None, None
+    if "drive.google.com" in url:
+        return _download_drive(url, out_dir)
+
+    # 1) Video download (info ke saath) — YouTube/Instagram yt-dlp se
     vopts = _base_opts(out_dir, ffmpeg_location, cookies_browser)
     vopts.update({
         "format": "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/b",

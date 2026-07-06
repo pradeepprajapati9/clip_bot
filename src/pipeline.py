@@ -57,17 +57,23 @@ def run(url, post_mode="off"):
         print(f"\n[1/4] Download ho raha hai: {url}")
         video_path, sub_path, info = download(url, dl_dir, cfg.get("subtitle_lang", "en"),
                                               ffmpeg_dir, cfg.get("cookies_browser"))
+    if not video_path or not os.path.exists(video_path):
+        print("\n[!] Video download nahi hua. Skip.")
+        return
     print(f"      video: {video_path}")
     print(f"      subs : {sub_path}")
 
-    if not sub_path or not os.path.exists(sub_path):
-        print("\n[!] Is video pe captions nahi mile. v1 captions pe chalta hai.")
-        print("    Aisा video try karo jispe CC ho, ya baad me Whisper add karenge.")
+    if sub_path and os.path.exists(sub_path):
+        print("\n[2/4] Captions parse ho rahe hain (YouTube CC)...")
+        cues = parse_vtt(sub_path)
+    else:
+        print("\n[2/4] Captions nahi mile (Drive/IG) — Whisper se transcribe...")
+        from transcribe import transcribe
+        cues = transcribe(video_path)
+    if not cues:
+        print("[!] Transcript khali — skip.")
         return
-
-    print("\n[2/4] Captions parse ho rahe hain...")
-    cues = parse_vtt(sub_path)
-    print(f"      {len(cues)} caption lines mile")
+    print(f"      {len(cues)} lines")
 
     min_s = cfg.get("clip_min_seconds", 21)
     max_s = cfg.get("clip_max_seconds", 34)
